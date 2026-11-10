@@ -210,6 +210,7 @@
         .highlighted-col { color: var(--gold); font-weight: bold; font-size: 18px; opacity: 1; text-shadow: 0 0 5px rgba(212, 175, 55, 0.5); }
         .highlighted-th { color: var(--gold); }
 
+        /* Replay-enabled History Card */
         #record-list { display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
         .record-placeholder { text-align: center; color: #777; font-style: italic; padding: 12px; font-size: 14px; }
         
@@ -253,6 +254,7 @@
 <body>
 
     <div class="container">
+        <!-- Set 3 Top-Right Badge -->
         <div class="set-indicator-badge">🏷️ Set 3</div>
 
         <div class="workspace-grid">
@@ -317,6 +319,7 @@
         <!-- DASHBOARD (INVENTORY & LOG) -->
         <div class="dashboard-container">
             
+            <!-- GROUP INVENTORY PANEL -->
             <div class="dashboard-panel">
                 <h3>📦 Group Inventory (Remaining Cubes)</h3>
                 <div class="group-selector-ui">
@@ -343,6 +346,7 @@
                 </table>
             </div>
 
+            <!-- OBSERVATION LOG PANEL -->
             <div class="dashboard-panel">
                 <h3>📝 Calculation History & Placement Log</h3>
                 <div id="record-list">
@@ -354,8 +358,8 @@
     </div>
 
     <script>
-        // Target Google Sheet ID for Set 3
-        const SPREADSHEET_ID = '1j6WxO94nshtSUziDTLnoNO8HzN7kLMG8osz67VFQ1ns';
+        // Target Google Sheet ID for Set 3 (replace with your new Sheet ID)
+        const SPREADSHEET_ID = 'YOUR_NEW_SET_3_SPREADSHEET_ID_HERE';
         const colors = ['red', 'orange', 'green', 'blue', 'purple'];
         const colorLabels = { red: 'Red', orange: 'Orange', green: 'Green', blue: 'Blue', purple: 'Purple' };
         const groups = ['A', 'B', 'C', 'D'];
@@ -366,7 +370,6 @@
         };
 
         let groupInventory = {};
-        let lastProcessedRow = 0;
         let animationQueue = [];
         let pendingResultData = null;
         let isAnimating = false;
@@ -418,7 +421,7 @@
             const btn = document.getElementById('btn-update');
             const status = document.getElementById('status-text');
             btn.disabled = true;
-            status.innerText = "Syncing with Google Sheet (Set 3)...";
+            status.innerText = "Syncing latest result with Google Sheet (Set 3)...";
 
             const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&headers=1&tq&nocache=${Date.now()}`;
 
@@ -606,14 +609,14 @@
             renderHistoryCards();
             renderInventoryDisplay();
 
+            // Always display the latest result whenever "Update Display" is clicked
             const latestRecord = parsedHistoryRecords[parsedHistoryRecords.length - 1];
-            if (lastProcessedRow !== latestRecord.rowNumber) {
-                lastProcessedRow = latestRecord.rowNumber;
-                playTurnAnimation(latestRecord);
-            } else {
-                status.innerText = `✓ Up to date with Row #${latestRecord.rowNumber}.`;
-                btn.disabled = false;
-            }
+            
+            document.querySelectorAll('.record-item').forEach(c => c.classList.remove('active-replaying'));
+            const latestCard = document.getElementById(`history-card-${latestRecord.rowNumber}`);
+            if (latestCard) latestCard.classList.add('active-replaying');
+
+            playTurnAnimation(latestRecord, true);
         }
 
         function renderHistoryCards() {
@@ -655,15 +658,17 @@
             const cardEl = document.getElementById(`history-card-${record.rowNumber}`);
             if (cardEl) cardEl.classList.add('active-replaying');
 
-            playTurnAnimation(record);
+            playTurnAnimation(record, false);
         }
 
-        function playTurnAnimation(record) {
+        function playTurnAnimation(record, isLatest = false) {
             isAnimating = true;
             document.getElementById('btn-update').disabled = true;
 
             const status = document.getElementById('status-text');
-            status.innerText = `Replaying Turn #${record.rowNumber} (Group ${record.group}): Setting scale to prior state...`;
+            status.innerText = isLatest 
+                ? `Loading Latest Calculation: Row #${record.rowNumber} (Group ${record.group})...`
+                : `Replaying Turn #${record.rowNumber} (Group ${record.group}): Setting scale to prior state...`;
 
             resetScaleRotations();
 
@@ -692,10 +697,12 @@
             pendingResultData = record;
 
             if (animationQueue.length > 0) {
-                status.innerText = `Dropping cubes placed by Group ${record.group}...`;
+                status.innerText = isLatest 
+                    ? `Showing latest cubes placed by Group ${record.group}...`
+                    : `Dropping cubes placed by Group ${record.group}...`;
                 setTimeout(processQueue, 300);
             } else {
-                status.innerText = `Turn #${record.rowNumber} (No cubes added). Showing result...`;
+                status.innerText = `Displaying latest result for Row #${record.rowNumber}...`;
                 setTimeout(triggerSwings, 400);
             }
         }
@@ -797,7 +804,7 @@
             if (pendingResultData) {
                 applySwingToScale('p', pendingResultData.primaryResult);
                 applySwingToScale('s', pendingResultData.secondaryResult);
-                document.getElementById('status-text').innerText = `✓ Showing Row #${pendingResultData.rowNumber} (Group ${pendingResultData.group}).`;
+                document.getElementById('status-text').innerText = `✓ Latest Result Displayed: Row #${pendingResultData.rowNumber} (Group ${pendingResultData.group}).`;
             }
             isAnimating = false;
             document.getElementById('btn-update').disabled = false;
