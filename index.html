@@ -321,7 +321,7 @@
             
             <!-- GROUP INVENTORY PANEL -->
             <div class="dashboard-panel">
-                <h3>📦 Group Inventory (Remaining Cubes)</h3>
+                <h3>📦 Group Inventory (Remaining Minerals)</h3>
                 <div class="group-selector-ui">
                     <label style="font-weight: bold; color: var(--gold);">Highlight Group:</label>
                     <select id="observer-group-selector" onchange="renderInventoryDisplay()">
@@ -358,7 +358,7 @@
     </div>
 
     <script>
-        // Target Google Sheet ID for Set 3 (replace with your new Sheet ID)
+        // Target Google Sheet ID for Set 3
         const SPREADSHEET_ID = '1j6WxO94nshtSUziDTLnoNO8HzN7kLMG8osz67VFQ1ns';
         const colors = ['red', 'orange', 'green', 'blue', 'purple'];
         const colorLabels = { red: 'Red', orange: 'Orange', green: 'Green', blue: 'Blue', purple: 'Purple' };
@@ -698,8 +698,8 @@
 
             if (animationQueue.length > 0) {
                 status.innerText = isLatest 
-                    ? `Showing latest cubes placed by Group ${record.group}...`
-                    : `Dropping cubes placed by Group ${record.group}...`;
+                    ? `Showing latest minerals placed by Group ${record.group}...`
+                    : `Dropping minerals placed by Group ${record.group}...`;
                 setTimeout(processQueue, 300);
             } else {
                 status.innerText = `Displaying latest result for Row #${record.rowNumber}...`;
